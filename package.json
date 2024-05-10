@@ -1,0 +1,40 @@
+{
+  "name": "iliad-strapi-adapter",
+  "version": "0.0.1",
+  "description": "Utility functions to simplify interactions with Strapi backend.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/strapi.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon ./src/index.ts",
+    "lint": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iliadwebdev/iliad-strapi-adapter"
+  },
+  "author": "Smoke3785",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/qs": "^6.9.15",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "rollup-plugin-dts": "^6.1.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "nodemon": "^3.1.0",
+    "rollup": "^4.17.2",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.0.2",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "iliad-hermes-ts": "^0.0.9",
+    "qs": "^6.12.1"
+  }
+}
