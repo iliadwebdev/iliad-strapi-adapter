@@ -12,7 +12,7 @@ import type {
   ErrorMessage,
   StrapiEntry,
   StrapiData,
-} from './@types/strapi.d.ts';
+} from './@types/adapter';
 
 declare class StrapiContext {
   constructor(

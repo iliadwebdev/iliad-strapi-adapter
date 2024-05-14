@@ -268,41 +268,6 @@ class StrapiContext {
         }
         return await StrapiUtils$1.coerceData(data, collection);
     }
-    async getNextEntry(idOrDate, collection, dateKey = 'createdAt', query, _hermes = this.hermes) {
-        query = StrapiUtils$1.sanitizeQuery(query);
-        let date;
-        if (idOrDate instanceof Date || typeof idOrDate === 'string') {
-            date = new Date(idOrDate).toISOString();
-        }
-        else {
-            // If there's no date provided, fetch the entry to get the date
-            let { data, error } = await this.getEntry(collection, idOrDate);
-            if (error) {
-                console.error(`Error fetching entry ${collection}/${idOrDate}:`, error, { query });
-                return { data: undefined, error };
-            }
-            date = data?.attributes[dateKey];
-            if (!date) {
-                console.error(`No date found in entry ${collection}/${idOrDate}`);
-                return {
-                    data: undefined,
-                    error: {
-                        message: `No date found in entry ${collection}/${idOrDate}`,
-                        code: 500,
-                    },
-                };
-            }
-        }
-        let _query = `filters[${dateKey}][$gt]=${date}&sort[0]=date:asc&${query}`;
-        let { data, error } = await this.getCollection(collection, 1, 1, _query);
-        if (error) {
-            console.error(`Error fetching next entry ${collection}:`, error, {
-                query: _query,
-            });
-            return { data: undefined, error };
-        }
-        return await StrapiUtils$1.coerceData(data, collection, undefined, true);
-    }
     get Hermes() {
         return this.hermes;
     }

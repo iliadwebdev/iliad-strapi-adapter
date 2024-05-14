@@ -2,20 +2,35 @@ import { Hermes } from 'iliad-hermes-ts';
 
 // TYPES
 import type {
-  StrapiEntry,
-  EnvVariable,
-  HermesOptions,
-  ErrorResponse,
-  ContextClient,
-  StrapiMetaData,
-  StrapiResponse,
-  SuccessResponse,
-  StandardResponse,
-  StrapiResponseType,
-  TransformedStrapiEntry,
+  // StrapiEntry,
+  // StrapiMetaData,
+  // StrapiResponseType,
+  // TransformedStrapiEntry,
   StrapiData,
   StrapiDataObject,
+  // StrapiResponse,
+  // INTERNAL TYPINGS
+  EnvVariable,
+  ErrorResponse,
+  HermesOptions,
+  ContextClient,
+  SuccessResponse,
+  StandardResponse,
+} from '../@types/adapter.js';
+
+import type {
+  APIResponseCollectionMetadata,
+  APIResponseCollection,
+  APIResponseData,
+  StrapiResponse,
+  APIResponse,
 } from '../@types/strapi.d.ts';
+
+import type { Common } from '@strapi/strapi';
+
+type TypedResponse<T extends Common.UID.ContentType> = Promise<
+  StandardResponse<APIResponseCollection<T>>
+>;
 
 // UTILITY FUNCTIONS
 import StrapiUtils from '../utils/utils.js';
@@ -62,10 +77,10 @@ class StrapiContext {
     );
   }
 
-  private async getWithClient<T = StrapiResponse>(
+  private async getWithClient(
     url: string | URL,
     options?: any
-  ): Promise<StandardResponse<T>> {
+  ): Promise<StandardResponse<StrapiResponse>> {
     url = url as string;
     let response;
 
@@ -76,18 +91,18 @@ class StrapiContext {
       response = await this.hermes.fetch(url, options);
     }
 
-    return response as StandardResponse<T>;
+    return response as StandardResponse<StrapiResponse>;
   }
 
   // GET FUNCTIONS
-  async getFullCollection<T = StrapiResponse>(
+  async getFullCollection<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     query: string | object = '',
     _hermes: Hermes = this.hermes
-  ): Promise<StandardResponse<T>> {
+  ): TypedResponse<TContentTypeUID> {
     query = StrapiUtils.sanitizeQuery(query);
 
-    let data: StrapiEntry[] = [];
+    let data: APIResponseData<TContentTypeUID>[] = [];
     let meta;
 
     _firstPage: {
@@ -114,7 +129,7 @@ class StrapiContext {
       }
 
       meta = firstPage.meta;
-      data = firstPage.data as StrapiEntry[];
+      data = firstPage.data as APIResponseData<TContentTypeUID>[];
     }
 
     let indexArray = StrapiUtils.indexArrayFromMeta(meta);
@@ -142,7 +157,7 @@ class StrapiContext {
         } as ErrorResponse;
       }
 
-      return page.data as StrapiEntry[];
+      return page.data as APIResponseData<TContentTypeUID>[];
     });
 
     let pages = await Promise.all(promises);
@@ -162,12 +177,12 @@ class StrapiContext {
     );
   }
 
-  async getEntryBySlug<T = StrapiEntry>(
+  async getEntryBySlug<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     slug: string,
     query: string | object = '',
     _hermes: Hermes = this.hermes
-  ): Promise<StandardResponse<T>> {
+  ): Promise<StandardResponse<APIResponse<TContentTypeUID>>> {
     let _q = StrapiUtils.sanitizeQuery(query, false);
     let __q = `&filters[slug][$eq]=${slug}`;
 
@@ -189,13 +204,13 @@ class StrapiContext {
     return await StrapiUtils.coerceData(data, collection, slug, true);
   }
 
-  async getCollection<T = StrapiResponse>(
+  async getCollection<TContentTypeUID extends Common.UID.CollectionType>(
     collection: string,
     page: number = 1,
     pageSize: number = 25,
     query: string | object = '',
     _hermes: Hermes = this.hermes
-  ): Promise<StandardResponse<T>> {
+  ): Promise<StandardResponse<APIResponseCollection<TContentTypeUID>>> {
     let _q = StrapiUtils.sanitizeQuery(query, false);
     let __q = `?pagination[pageSize]=${pageSize}&pagination[page]=${page}`;
 
@@ -215,12 +230,12 @@ class StrapiContext {
     return await StrapiUtils.coerceData(data, collection);
   }
 
-  async getEntry<T = StrapiEntry>(
+  async getEntry<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     id: number,
     query: string | object = '',
     _hermes: Hermes = this.hermes
-  ): Promise<StandardResponse<T>> {
+  ): Promise<StandardResponse<TContentTypeUID>> {
     query = StrapiUtils.sanitizeQuery(query);
 
     let { data, error } = await this.getWithClient(
@@ -237,11 +252,11 @@ class StrapiContext {
     return await StrapiUtils.coerceData(data, collection, id);
   }
 
-  async getSingle<T = StrapiEntry>(
+  async getSingle<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     query: string | object = '',
     _hermes: Hermes = this.hermes
-  ): Promise<StandardResponse<T>> {
+  ): TypedResponse<TContentTypeUID> {
     query = StrapiUtils.sanitizeQuery(query);
 
     let { data, error } = await this.getWithClient(`${collection}${query}`);
@@ -252,75 +267,6 @@ class StrapiContext {
     }
 
     return await StrapiUtils.coerceData(data, collection);
-  }
-
-  async getNextEntry(
-    id: number,
-    collection: string,
-    dateKey: string,
-    query?: string | object,
-    _hermes?: Hermes
-  ): Promise<SuccessResponse<StrapiEntry> | ErrorResponse>;
-  async getNextEntry(
-    date: string | Date,
-    collection: string,
-    dateKey: string,
-    query?: string | object,
-    _hermes?: Hermes
-  ): Promise<SuccessResponse<StrapiEntry> | ErrorResponse>;
-  async getNextEntry(
-    idOrDate: number | string | Date,
-    collection: string,
-    dateKey: string = 'createdAt',
-    query?: string | object,
-    _hermes: Hermes = this.hermes
-  ): Promise<SuccessResponse<StrapiEntry> | ErrorResponse> {
-    query = StrapiUtils.sanitizeQuery(query);
-    let date: string;
-
-    if (idOrDate instanceof Date || typeof idOrDate === 'string') {
-      date = new Date(idOrDate).toISOString();
-    } else {
-      // If there's no date provided, fetch the entry to get the date
-      let { data, error } = await this.getEntry<StrapiEntry>(
-        collection,
-        idOrDate
-      );
-      if (error) {
-        console.error(
-          `Error fetching entry ${collection}/${idOrDate}:`,
-          error,
-          { query }
-        );
-        return { data: undefined, error } as ErrorResponse;
-      }
-
-      date = data?.attributes[dateKey];
-
-      if (!date) {
-        console.error(`No date found in entry ${collection}/${idOrDate}`);
-        return {
-          data: undefined,
-          error: {
-            message: `No date found in entry ${collection}/${idOrDate}`,
-            code: 500,
-          },
-        } as ErrorResponse;
-      }
-    }
-
-    let _query = `filters[${dateKey}][$gt]=${date}&sort[0]=date:asc&${query}`;
-
-    let { data, error } = await this.getCollection(collection, 1, 1, _query);
-
-    if (error) {
-      console.error(`Error fetching next entry ${collection}:`, error, {
-        query: _query,
-      });
-      return { data: undefined, error } as ErrorResponse;
-    }
-
-    return await StrapiUtils.coerceData(data, collection, undefined, true);
   }
 
   get Hermes(): Hermes {

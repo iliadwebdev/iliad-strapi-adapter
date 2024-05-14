@@ -13,7 +13,7 @@ import type {
   StrapiDataObject,
   StrapiResponseType,
   TransformedStrapiEntry,
-} from '../@types/strapi';
+} from '../@types/adapter';
 import { type HermesOptions } from 'iliad-hermes-ts';
 
 // ============
