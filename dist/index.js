@@ -23,7 +23,7 @@ var StrapiUtils;
     StrapiUtils.sanitizeQuery = sanitizeQuery;
     function mergeQueries(...queries) { }
     StrapiUtils.mergeQueries = mergeQueries;
-    async function coerceData(data = null, collection, id, extractSingleCollectionResponse = false) {
+    async function coerceData(data = null, collection, id, extractSingleCollectionResponse = false, client) {
         let result;
         let apiResponse;
         let type;
@@ -66,7 +66,7 @@ var StrapiUtils;
     function mergeDefaultHermesOptions(options = {}) {
         return {
             verboseLogging: false,
-            extractData: true,
+            extractData: false,
             ...options,
         };
     }
@@ -141,17 +141,33 @@ var StrapiUtils$1 = StrapiUtils;
 // I should move this entire implementation to a StrapiContext class that extends Hermes, and then export a default instance of that class.
 class StrapiContext {
     hermes;
-    constructor(contextLabel, strapiApiLocation, strapiBearerToken, options) {
+    client = 'axios';
+    constructor(contextLabel, strapiApiLocation, strapiBearerToken, client, options) {
         this.hermes = new iliadHermesTs.Hermes(contextLabel, StrapiUtils$1.mergeDefaultHermesOptions(options)).addBaseUrl(strapiApiLocation);
         if (strapiBearerToken) {
             this.hermes.addBaseHeaders({
                 Authorization: `Bearer ${strapiBearerToken}`,
             });
         }
+        if (client) {
+            this.client = client || this.client;
+        }
     }
     // CONTEXT UTILITIES
     static createStrapiContext(contextLabel, strapiApiLocation, strapiBearerToken, options) {
         return new StrapiContext(contextLabel, strapiApiLocation, strapiBearerToken, options);
+    }
+    async getWithClient(url, options) {
+        url = url;
+        let response;
+        if (this.client === 'axios') {
+            response = await this.hermes.axios.get(url, options);
+            response = response.data;
+        }
+        else {
+            response = await this.hermes.fetch(url, options);
+        }
+        return response;
     }
     // GET FUNCTIONS
     async getFullCollection(collection, query = '', _hermes = this.hermes) {
@@ -224,7 +240,7 @@ class StrapiContext {
         if (_q) {
             __q += `&${_q}`;
         }
-        let { data, error } = await _hermes.axios.get(`${collection}${__q}`);
+        let { data, error } = await this.getWithClient(`${collection}${__q}`);
         if (error) {
             console.error(`Error fetching collection ${collection}:`, error, {
                 query: __q,
@@ -235,7 +251,8 @@ class StrapiContext {
     }
     async getEntry(collection, id, query = '', _hermes = this.hermes) {
         query = StrapiUtils$1.sanitizeQuery(query);
-        let { data, error } = await _hermes.axios.get(`${collection}/${id}${query}`);
+        let { data, error } = await this.getWithClient(`${collection}/${id}${query}`);
+        console.log({ fromGE: data });
         if (error) {
             console.error(`Error fetching entry ${collection}:`, error, { query });
             return { data: undefined, error };
@@ -244,7 +261,7 @@ class StrapiContext {
     }
     async getSingle(collection, query = '', _hermes = this.hermes) {
         query = StrapiUtils$1.sanitizeQuery(query);
-        let { data, error } = await _hermes.axios.get(`${collection}${query}`);
+        let { data, error } = await this.getWithClient(`${collection}${query}`);
         if (error) {
             console.error(`Error fetching entry ${collection}:`, error, { query });
             return { data: undefined, error };
@@ -286,9 +303,16 @@ class StrapiContext {
         }
         return await StrapiUtils$1.coerceData(data, collection, undefined, true);
     }
+    get Hermes() {
+        return this.hermes;
+    }
     // STATIC FUNCTIONS
-    static extractStrapiData = StrapiUtils$1.extractStrapiData;
-    extractStrapiData = StrapiUtils$1.extractStrapiData;
+    static extractStrapiData(input) {
+        return StrapiUtils$1.extractStrapiData(input);
+    }
+    extractStrapiData(input) {
+        return StrapiUtils$1.extractStrapiData(input);
+    }
 }
 
 exports.default = StrapiContext;

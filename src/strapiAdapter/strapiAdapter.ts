@@ -3,14 +3,18 @@ import { Hermes } from 'iliad-hermes-ts';
 // TYPES
 import type {
   StrapiEntry,
+  EnvVariable,
   HermesOptions,
   ErrorResponse,
+  ContextClient,
   StrapiMetaData,
   StrapiResponse,
   SuccessResponse,
   StandardResponse,
   StrapiResponseType,
   TransformedStrapiEntry,
+  StrapiData,
+  StrapiDataObject,
 } from '../@types/strapi.d.ts';
 
 // UTILITY FUNCTIONS
@@ -19,10 +23,12 @@ import StrapiUtils from '../utils/utils.js';
 // I should move this entire implementation to a StrapiContext class that extends Hermes, and then export a default instance of that class.
 class StrapiContext {
   hermes: Hermes;
+  client: ContextClient = 'axios';
   constructor(
     contextLabel: string,
-    strapiApiLocation: string | URL,
-    strapiBearerToken?: string,
+    strapiApiLocation: EnvVariable & URL,
+    strapiBearerToken?: EnvVariable,
+    client?: ContextClient,
     options?: HermesOptions
   ) {
     this.hermes = new Hermes(
@@ -35,13 +41,17 @@ class StrapiContext {
         Authorization: `Bearer ${strapiBearerToken}`,
       });
     }
+
+    if (client) {
+      this.client = (client as ContextClient) || this.client;
+    }
   }
 
   // CONTEXT UTILITIES
   static createStrapiContext(
     contextLabel: string,
-    strapiApiLocation: string | URL,
-    strapiBearerToken?: string,
+    strapiApiLocation: EnvVariable & URL,
+    strapiBearerToken?: EnvVariable,
     options?: HermesOptions
   ): StrapiContext {
     return new StrapiContext(
@@ -50,6 +60,23 @@ class StrapiContext {
       strapiBearerToken,
       options
     );
+  }
+
+  private async getWithClient<T = StrapiResponse>(
+    url: string | URL,
+    options?: any
+  ): Promise<StandardResponse<T>> {
+    url = url as string;
+    let response;
+
+    if (this.client === 'axios') {
+      response = await this.hermes.axios.get(url, options);
+      response = response.data;
+    } else {
+      response = await this.hermes.fetch(url, options);
+    }
+
+    return response as StandardResponse<T>;
   }
 
   // GET FUNCTIONS
@@ -176,7 +203,7 @@ class StrapiContext {
       __q += `&${_q}`;
     }
 
-    let { data, error } = await _hermes.axios.get(`${collection}${__q}`);
+    let { data, error } = await this.getWithClient(`${collection}${__q}`);
 
     if (error) {
       console.error(`Error fetching collection ${collection}:`, error, {
@@ -196,9 +223,11 @@ class StrapiContext {
   ): Promise<StandardResponse<T>> {
     query = StrapiUtils.sanitizeQuery(query);
 
-    let { data, error } = await _hermes.axios.get(
+    let { data, error } = await this.getWithClient(
       `${collection}/${id}${query}`
     );
+
+    console.log({ fromGE: data });
 
     if (error) {
       console.error(`Error fetching entry ${collection}:`, error, { query });
@@ -215,7 +244,7 @@ class StrapiContext {
   ): Promise<StandardResponse<T>> {
     query = StrapiUtils.sanitizeQuery(query);
 
-    let { data, error } = await _hermes.axios.get(`${collection}${query}`);
+    let { data, error } = await this.getWithClient(`${collection}${query}`);
 
     if (error) {
       console.error(`Error fetching entry ${collection}:`, error, { query });
@@ -294,9 +323,18 @@ class StrapiContext {
     return await StrapiUtils.coerceData(data, collection, undefined, true);
   }
 
+  get Hermes(): Hermes {
+    return this.hermes;
+  }
+
   // STATIC FUNCTIONS
-  public static extractStrapiData = StrapiUtils.extractStrapiData;
-  extractStrapiData = StrapiUtils.extractStrapiData;
+  public static extractStrapiData(input: StrapiData | StrapiDataObject) {
+    return StrapiUtils.extractStrapiData(input);
+  }
+  public extractStrapiData(input: StrapiData | StrapiDataObject) {
+    return StrapiUtils.extractStrapiData(input);
+  }
+  // extractStrapiData = StrapiUtils.extractStrapiData;
 }
 
 export default StrapiContext;

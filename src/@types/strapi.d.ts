@@ -42,9 +42,17 @@ type StrapiResponse = {
   data: StrapiEntry | Array<StrapiEntry>;
 };
 
+type EnvVariable = string | undefined;
+
 type StrapiResponseType = 'entry' | 'collection';
 
 type StandardResponse<T> = SuccessResponse<T> | ErrorResponse;
+
+export type ContextClient = 'axios' | 'fetch';
+export type StrapiData = StrapiResponse | StrapiEntry | StrapiEntry[];
+export type StrapiDataObject = {
+  [key: string]: StrapiData;
+};
 
 export {
   TransformedStrapiEntry,
@@ -56,5 +64,6 @@ export {
   HermesOptions,
   ErrorResponse,
   ErrorMessage,
+  EnvVariable,
   StrapiEntry,
 };

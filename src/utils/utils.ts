@@ -3,11 +3,14 @@ import qs from 'qs';
 
 // Types
 import type {
+  StrapiData,
   StrapiEntry,
   ErrorResponse,
+  ContextClient,
   StrapiMetaData,
   StrapiResponse,
   SuccessResponse,
+  StrapiDataObject,
   StrapiResponseType,
   TransformedStrapiEntry,
 } from '../@types/strapi';
@@ -39,7 +42,8 @@ namespace StrapiUtils {
     data: any = null,
     collection: string,
     id?: number | string,
-    extractSingleCollectionResponse: boolean = false
+    extractSingleCollectionResponse: boolean = false,
+    client?: ContextClient
   ): Promise<SuccessResponse<any> | ErrorResponse> {
     let result: StrapiEntry | Array<StrapiEntry> | StrapiResponse;
     let apiResponse: StrapiResponse;
@@ -86,12 +90,12 @@ namespace StrapiUtils {
   ): HermesOptions {
     return {
       verboseLogging: false,
-      extractData: true,
+      extractData: false,
       ...options,
     } as HermesOptions;
   }
   export async function extractStrapiData(
-    input: StrapiResponse | StrapiEntry | StrapiEntry[]
+    input: StrapiData | StrapiDataObject
   ) {
     function isObject(obj: any) {
       return obj !== null && typeof obj === 'object';
