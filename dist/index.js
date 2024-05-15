@@ -252,7 +252,6 @@ class StrapiContext {
     async getEntry(collection, id, query = '', _hermes = this.hermes) {
         query = StrapiUtils$1.sanitizeQuery(query);
         let { data, error } = await this.getWithClient(`${collection}/${id}${query}`);
-        console.log({ fromGE: data });
         if (error) {
             console.error(`Error fetching entry ${collection}:`, error, { query });
             return { data: undefined, error };
@@ -280,5 +279,6 @@ class StrapiContext {
     }
 }
 
+exports.StrapiUtils = StrapiUtils$1;
 exports.default = StrapiContext;
 //# sourceMappingURL=index.js.map

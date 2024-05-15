@@ -1,5 +1,6 @@
 import { HermesOptions, Hermes } from 'iliad-hermes-ts';
 import { Common, Attribute, Utils } from '@strapi/strapi';
+export { Attribute, Common, Utils } from '@strapi/strapi';
 
 type IDProperty = { id: number };
 
@@ -139,8 +140,6 @@ interface APIResponseCollection<
   meta: APIResponseCollectionMetadata;
 }
 
-type StrapiResponse = APIResponseCollection | APIResponse;
-
 type ErrorMessage = {
   message: string;
   code: number;
@@ -154,11 +153,6 @@ type SuccessResponse<T> = {
 type ErrorResponse = {
   data: undefined;
   error: ErrorMessage;
-};
-
-type StrapiEntry = {
-  id: number;
-  attributes: any;
 };
 
 type StandardResponse<T> = SuccessResponse<T> | ErrorResponse;
@@ -188,39 +182,39 @@ declare class StrapiContext {
   ): StrapiContext;
 
   // Get Functions
-  getFullCollection<T = StrapiResponse>(
+  getFullCollection<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     query?: string | object,
     _hermes?: Hermes
-  ): Promise<StandardResponse<T>>;
+  ): Promise<StandardResponse<TContentTypeUID>>;
 
-  getEntryBySlug<T = StrapiEntry>(
+  getEntryBySlug<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     slug: string,
     query?: string | object,
     _hermes?: Hermes
-  ): Promise<StandardResponse<T>>;
+  ): Promise<StandardResponse<TContentTypeUID>>;
 
-  getCollection<T = StrapiResponse>(
+  getCollection<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     page: number,
     pageSize: number,
     query?: string | object,
     _hermes?: Hermes
-  ): Promise<StandardResponse<T>>;
+  ): Promise<StandardResponse<TContentTypeUID>>;
 
-  getEntry<T = StrapiEntry>(
+  getEntry<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     id: number,
     query?: string | object,
     _hermes?: Hermes
-  ): Promise<StandardResponse<T>>;
+  ): Promise<StandardResponse<TContentTypeUID>>;
 
-  getSingle<T = StrapiEntry>(
+  getSingle<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     query: string | object,
     _hermes?: Hermes
-  ): Promise<StandardResponse<T>>;
+  ): Promise<StandardResponse<TContentTypeUID>>;
 
   // Getters
   get hermes(): Hermes;
@@ -234,4 +228,4 @@ declare namespace StrapiUtils {
   function extractStrapiData(input: StrapiData | StrapiDataObject): object;
 }
 
-export { StrapiUtils, StrapiContext as default };
+export { type APIResponse, type APIResponseCollection, type APIResponseCollectionMetadata, type APIResponseData, StrapiUtils, StrapiContext as default };

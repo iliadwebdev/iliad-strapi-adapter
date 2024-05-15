@@ -139,3 +139,4 @@ export interface APIResponseCollection<
 }
 
 export type StrapiResponse = APIResponseCollection | APIResponse;
+export type { Common, Attribute, Utils };

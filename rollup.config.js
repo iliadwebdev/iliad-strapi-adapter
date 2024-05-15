@@ -23,7 +23,7 @@ module.exports = [
       }),
     ],
     plugins: [typescript()],
-    external: ['iliad-hermes-ts', 'qs'], // <-- suppresses the warning
+    external: ['iliad-hermes-ts', 'typescript', '@strapi/strapi', 'qs'], // <-- suppresses the warning
   },
   {
     input: `src/index.d.ts`,

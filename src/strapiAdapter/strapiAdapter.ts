@@ -242,8 +242,6 @@ class StrapiContext {
       `${collection}/${id}${query}`
     );
 
-    console.log({ fromGE: data });
-
     if (error) {
       console.error(`Error fetching entry ${collection}:`, error, { query });
       return { data: undefined, error } as ErrorResponse;

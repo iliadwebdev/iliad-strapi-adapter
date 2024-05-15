@@ -14,6 +14,16 @@ import type {
   StrapiData,
 } from './@types/adapter';
 
+import {
+  Common,
+  Attribute,
+  Utils,
+  APIResponseCollectionMetadata,
+  APIResponseCollection,
+  APIResponseData,
+  APIResponse,
+} from './@types/strapi';
+
 declare class StrapiContext {
   constructor(
     contextLabel: string,
@@ -31,39 +41,39 @@ declare class StrapiContext {
   ): StrapiContext;
 
   // Get Functions
-  getFullCollection<T = StrapiResponse>(
+  getFullCollection<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     query?: string | object,
     _hermes?: Hermes
-  ): Promise<StandardResponse<T>>;
+  ): Promise<StandardResponse<TContentTypeUID>>;
 
-  getEntryBySlug<T = StrapiEntry>(
+  getEntryBySlug<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     slug: string,
     query?: string | object,
     _hermes?: Hermes
-  ): Promise<StandardResponse<T>>;
+  ): Promise<StandardResponse<TContentTypeUID>>;
 
-  getCollection<T = StrapiResponse>(
+  getCollection<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     page: number,
     pageSize: number,
     query?: string | object,
     _hermes?: Hermes
-  ): Promise<StandardResponse<T>>;
+  ): Promise<StandardResponse<TContentTypeUID>>;
 
-  getEntry<T = StrapiEntry>(
+  getEntry<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     id: number,
     query?: string | object,
     _hermes?: Hermes
-  ): Promise<StandardResponse<T>>;
+  ): Promise<StandardResponse<TContentTypeUID>>;
 
-  getSingle<T = StrapiEntry>(
+  getSingle<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     query: string | object,
     _hermes?: Hermes
-  ): Promise<StandardResponse<T>>;
+  ): Promise<StandardResponse<TContentTypeUID>>;
 
   // Getters
   get hermes(): Hermes;
@@ -77,6 +87,15 @@ declare namespace StrapiUtils {
   function extractStrapiData(input: StrapiData | StrapiDataObject): object;
 }
 
-export { StrapiUtils };
+export {
+  APIResponseCollectionMetadata,
+  APIResponseCollection,
+  APIResponseData,
+  APIResponse,
+  Attribute,
+  Common,
+  Utils,
+}; // Strapi types
+export { StrapiUtils }; // Strapi adapter utilities
 
-export default StrapiContext;
+export default StrapiContext; // Strapi adapter

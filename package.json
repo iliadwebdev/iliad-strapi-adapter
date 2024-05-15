@@ -1,7 +1,13 @@
 {
   "name": "iliad-strapi-adapter",
-  "version": "0.0.15",
+  "version": "0.0.24",
   "description": "Utility functions to simplify interactions with Strapi backend.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iliadwebdev/iliad-strapi-adapter"
+  },
+  "license": "ISC",
+  "author": "Smoke3785",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/strapi.d.ts",
@@ -10,21 +16,20 @@
   ],
   "scripts": {
     "_publish": "npm upgrade iliad-hermes-ts && node iterate && rollup -c && npm publish",
-    "test": "rollup -c && node test/index.ts",
-    "test-": "node test/index.ts",
-    "dev": "nodemon ./src/index.ts",
     "build": "rollup -c",
-    "lint": "tsc"
+    "dev": "nodemon ./src/index.ts",
+    "lint": "tsc",
+    "test": "rollup -c && node test/index.ts",
+    "test-": "node test/index.ts"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/iliadwebdev/iliad-strapi-adapter"
+  "dependencies": {
+    "@strapi/strapi": "^4.24.2",
+    "iliad-hermes-ts": "^0.0.10",
+    "qs": "^6.12.1",
+    "typescript": "^5.2.2"
   },
-  "author": "Smoke3785",
-  "license": "ISC",
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@strapi/strapi": "^4.24.2",
     "@types/qs": "^6.9.15",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.7.0",
@@ -33,11 +38,6 @@
     "rollup-plugin-dts": "^6.1.0",
     "rollup-plugin-typescript2": "^0.36.0",
     "ts-node": "^10.9.2",
-    "tsup": "^8.0.2",
-    "typescript": "^5.2.2"
-  },
-  "dependencies": {
-    "iliad-hermes-ts": "^0.0.10",
-    "qs": "^6.12.1"
+    "tsup": "^8.0.2"
   }
 }

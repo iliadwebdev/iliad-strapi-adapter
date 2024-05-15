@@ -14,7 +14,26 @@ import type {
   StrapiResponseType,
   TransformedStrapiEntry,
 } from '../@types/adapter';
+import type {
+  Common,
+  APIResponse,
+  APIResponseData,
+  APIResponseCollection,
+} from '../@types/strapi';
 import { type HermesOptions } from 'iliad-hermes-ts';
+
+// Utils
+
+type StrapiDataInput<T extends Common.UID.ContentType> =
+  | APIResponse<T>
+  | APIResponseCollection<T>
+  | APIResponseData<T>;
+
+type oStrapiDataInput<T extends Common.UID.ContentType> =
+  | StrapiDataInput<T>
+  | {
+      [key: string]: StrapiDataInput<T>;
+    };
 
 // ============
 // SHARED UTILS
@@ -94,9 +113,9 @@ namespace StrapiUtils {
       ...options,
     } as HermesOptions;
   }
-  export async function extractStrapiData(
-    input: StrapiData | StrapiDataObject
-  ) {
+  export async function extractStrapiData<
+    TContentTypeUID extends Common.UID.ContentType
+  >(input: StrapiData | StrapiDataObject) {
     function isObject(obj: any) {
       return obj !== null && typeof obj === 'object';
     }
