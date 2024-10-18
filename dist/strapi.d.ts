@@ -186,14 +186,14 @@ declare class StrapiContext {
     collection: string,
     query?: string | object,
     _hermes?: Hermes
-  ): Promise<StandardResponse<TContentTypeUID>>;
+  ): Promise<StandardResponse<APIResponseCollection<TContentTypeUID>>>;
 
   getEntryBySlug<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     slug: string,
     query?: string | object,
     _hermes?: Hermes
-  ): Promise<StandardResponse<TContentTypeUID>>;
+  ): Promise<StandardResponse<APIResponse<TContentTypeUID>>>;
 
   getCollection<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
@@ -201,20 +201,20 @@ declare class StrapiContext {
     pageSize: number,
     query?: string | object,
     _hermes?: Hermes
-  ): Promise<StandardResponse<TContentTypeUID>>;
+  ): Promise<StandardResponse<APIResponseCollection<TContentTypeUID>>>;
 
   getEntry<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     id: number,
     query?: string | object,
     _hermes?: Hermes
-  ): Promise<StandardResponse<TContentTypeUID>>;
+  ): Promise<StandardResponse<APIResponseData<TContentTypeUID>>>;
 
   getSingle<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     query: string | object,
     _hermes?: Hermes
-  ): Promise<StandardResponse<TContentTypeUID>>;
+  ): Promise<StandardResponse<APIResponseData<TContentTypeUID>>>;
 
   // Getters
   get hermes(): Hermes;

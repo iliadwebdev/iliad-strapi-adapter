@@ -99,7 +99,7 @@ class StrapiContext {
     collection: string,
     query: string | object = '',
     _hermes: Hermes = this.hermes
-  ): TypedResponse<TContentTypeUID> {
+  ): Promise<StandardResponse<APIResponseCollection<TContentTypeUID>>> {
     query = StrapiUtils.sanitizeQuery(query);
 
     let data: APIResponseData<TContentTypeUID>[] = [];
@@ -235,7 +235,7 @@ class StrapiContext {
     id: number,
     query: string | object = '',
     _hermes: Hermes = this.hermes
-  ): Promise<StandardResponse<TContentTypeUID>> {
+  ): Promise<StandardResponse<APIResponseData<TContentTypeUID>>> {
     query = StrapiUtils.sanitizeQuery(query);
 
     let { data, error } = await this.getWithClient(
@@ -254,7 +254,7 @@ class StrapiContext {
     collection: string,
     query: string | object = '',
     _hermes: Hermes = this.hermes
-  ): TypedResponse<TContentTypeUID> {
+  ): Promise<StandardResponse<APIResponseData<TContentTypeUID>>> {
     query = StrapiUtils.sanitizeQuery(query);
 
     let { data, error } = await this.getWithClient(`${collection}${query}`);
