@@ -182,7 +182,7 @@ class StrapiContext {
     slug: string,
     query: string | object = '',
     _hermes: Hermes = this.hermes
-  ): Promise<StandardResponse<APIResponse<TContentTypeUID>>> {
+  ): Promise<StandardResponse<APIResponseData<TContentTypeUID>>> {
     let _q = StrapiUtils.sanitizeQuery(query, false);
     let __q = `&filters[slug][$eq]=${slug}`;
 
