@@ -1,6 +1,6 @@
 {
   "name": "iliad-strapi-adapter",
-  "version": "0.0.27",
+  "version": "0.0.29",
   "description": "Utility functions to simplify interactions with Strapi backend.",
   "repository": {
     "type": "git",

@@ -52,7 +52,7 @@ declare class StrapiContext {
     slug: string,
     query?: string | object,
     _hermes?: Hermes
-  ): Promise<StandardResponse<APIResponse<TContentTypeUID>>>;
+  ): Promise<StandardResponse<APIResponseData<TContentTypeUID>>>;
 
   getCollection<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
