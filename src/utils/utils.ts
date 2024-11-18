@@ -1,5 +1,5 @@
 // Dependencies
-import qs from 'qs';
+import qs from "qs";
 
 // Types
 import type {
@@ -13,14 +13,14 @@ import type {
   StrapiDataObject,
   StrapiResponseType,
   TransformedStrapiEntry,
-} from '../@types/adapter';
+} from "../@types/adapter";
 import type {
   Common,
   APIResponse,
   APIResponseData,
   APIResponseCollection,
-} from '../@types/strapi';
-import { type HermesOptions } from 'iliad-hermes-ts';
+} from "../@types/strapi";
+import { type HermesOptions } from "iliad-hermes-ts";
 
 // Utils
 
@@ -40,21 +40,21 @@ type oStrapiDataInput<T extends Common.UID.ContentType> =
 // ============
 namespace StrapiUtils {
   export function sanitizeQuery(
-    query: string | object = '',
+    query: string | object = "",
     addQueryPrefix: boolean = true
   ): string {
     // If query is an object, convert it to a string
-    if (typeof query === 'object') {
+    if (typeof query === "object") {
       query = qs.stringify(query);
     }
 
     // If query starts with an ampersand, remove it - this is to prevent polluting query through nested sanitization.
-    query = query.startsWith('&') ? query.slice(1) : query;
+    query = query.startsWith("&") ? query.slice(1) : query;
 
-    let qp = addQueryPrefix ? '?' : '';
-    query ? (query = `${qp}${query}`) : (query = '');
+    let qp = addQueryPrefix ? "?" : "";
+    query ? (query = `${qp}${query}`) : (query = "");
 
-    return query;
+    return query.replaceAll("&?", "&"); // Monkey patch, this sanitization function needs to be revisited.
   }
   export function mergeQueries(...queries: any[]) {}
   export async function coerceData(
@@ -69,10 +69,10 @@ namespace StrapiUtils {
     let type: StrapiResponseType;
 
     try {
-      if (!data) throw new Error('No data returned from Strapi');
+      if (!data) throw new Error("No data returned from Strapi");
       apiResponse = data as StrapiResponse;
 
-      type = 'attributes' in apiResponse?.data ? 'entry' : 'collection';
+      type = "attributes" in apiResponse?.data ? "entry" : "collection";
     } catch (error: any) {
       console.error(
         `Error parsing entry ${collection}/${id}: ${error.message}`
@@ -80,7 +80,7 @@ namespace StrapiUtils {
       return { data: undefined, error } as ErrorResponse;
     }
 
-    if (type === 'entry') {
+    if (type === "entry") {
       result = apiResponse.data;
     } else {
       if (extractSingleCollectionResponse) {
@@ -117,7 +117,7 @@ namespace StrapiUtils {
     TContentTypeUID extends Common.UID.ContentType
   >(input: StrapiData | StrapiDataObject) {
     function isObject(obj: any) {
-      return obj !== null && typeof obj === 'object';
+      return obj !== null && typeof obj === "object";
     }
 
     function isArray(obj: any) {
@@ -125,23 +125,23 @@ namespace StrapiUtils {
     }
 
     function isEntryObject(value: any) {
-      return isObject(value) && 'id' in value && 'attributes' in value;
+      return isObject(value) && "id" in value && "attributes" in value;
     }
 
     function isRelation(value: any): boolean {
-      if (!('data' in value)) return false;
+      if (!("data" in value)) return false;
 
       if (
         isArray(value.data) &&
         value.data.every(
-          (item: any) => isObject(item) && 'id' in item && 'attributes' in item
+          (item: any) => isObject(item) && "id" in item && "attributes" in item
         )
       )
         return true;
       if (
         isObject(value.data) &&
-        'id' in value.data &&
-        'attributes' in value.data
+        "id" in value.data &&
+        "attributes" in value.data
       )
         return true;
 

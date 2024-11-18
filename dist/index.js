@@ -9,16 +9,16 @@ var qs = require('qs');
 // ============
 var StrapiUtils;
 (function (StrapiUtils) {
-    function sanitizeQuery(query = '', addQueryPrefix = true) {
+    function sanitizeQuery(query = "", addQueryPrefix = true) {
         // If query is an object, convert it to a string
-        if (typeof query === 'object') {
+        if (typeof query === "object") {
             query = qs.stringify(query);
         }
         // If query starts with an ampersand, remove it - this is to prevent polluting query through nested sanitization.
-        query = query.startsWith('&') ? query.slice(1) : query;
-        let qp = addQueryPrefix ? '?' : '';
-        query ? (query = `${qp}${query}`) : (query = '');
-        return query;
+        query = query.startsWith("&") ? query.slice(1) : query;
+        let qp = addQueryPrefix ? "?" : "";
+        query ? (query = `${qp}${query}`) : (query = "");
+        return query.replaceAll("&?", "&"); // Monkey patch, this sanitization function needs to be revisited.
     }
     StrapiUtils.sanitizeQuery = sanitizeQuery;
     function mergeQueries(...queries) { }
@@ -29,15 +29,15 @@ var StrapiUtils;
         let type;
         try {
             if (!data)
-                throw new Error('No data returned from Strapi');
+                throw new Error("No data returned from Strapi");
             apiResponse = data;
-            type = 'attributes' in apiResponse?.data ? 'entry' : 'collection';
+            type = "attributes" in apiResponse?.data ? "entry" : "collection";
         }
         catch (error) {
             console.error(`Error parsing entry ${collection}/${id}: ${error.message}`);
             return { data: undefined, error };
         }
-        if (type === 'entry') {
+        if (type === "entry") {
             result = apiResponse.data;
         }
         else {
@@ -73,23 +73,23 @@ var StrapiUtils;
     StrapiUtils.mergeDefaultHermesOptions = mergeDefaultHermesOptions;
     async function extractStrapiData(input) {
         function isObject(obj) {
-            return obj !== null && typeof obj === 'object';
+            return obj !== null && typeof obj === "object";
         }
         function isArray(obj) {
             return Array.isArray(obj);
         }
         function isEntryObject(value) {
-            return isObject(value) && 'id' in value && 'attributes' in value;
+            return isObject(value) && "id" in value && "attributes" in value;
         }
         function isRelation(value) {
-            if (!('data' in value))
+            if (!("data" in value))
                 return false;
             if (isArray(value.data) &&
-                value.data.every((item) => isObject(item) && 'id' in item && 'attributes' in item))
+                value.data.every((item) => isObject(item) && "id" in item && "attributes" in item))
                 return true;
             if (isObject(value.data) &&
-                'id' in value.data &&
-                'attributes' in value.data)
+                "id" in value.data &&
+                "attributes" in value.data)
                 return true;
             return false;
         }
@@ -141,7 +141,7 @@ var StrapiUtils$1 = StrapiUtils;
 // I should move this entire implementation to a StrapiContext class that extends Hermes, and then export a default instance of that class.
 class StrapiContext {
     hermes;
-    client = 'axios';
+    client = "axios";
     constructor(contextLabel, strapiApiLocation, strapiBearerToken, client, options) {
         this.hermes = new iliadHermesTs.Hermes(contextLabel, StrapiUtils$1.mergeDefaultHermesOptions(options)).addBaseUrl(strapiApiLocation);
         if (strapiBearerToken) {
@@ -160,7 +160,7 @@ class StrapiContext {
     async getWithClient(url, options) {
         url = url;
         let response;
-        if (this.client === 'axios') {
+        if (this.client === "axios") {
             response = await this.hermes.axios.get(url, options);
             response = response.data;
         }
@@ -170,7 +170,7 @@ class StrapiContext {
         return response;
     }
     // GET FUNCTIONS
-    async getFullCollection(collection, query = '', _hermes = this.hermes) {
+    async getFullCollection(collection, query = "", _hermes = this.hermes) {
         query = StrapiUtils$1.sanitizeQuery(query);
         let data = [];
         let meta;
@@ -186,7 +186,7 @@ class StrapiContext {
                 console.error(`No data returned from Strapi`);
                 return {
                     data: undefined,
-                    error: { message: 'No data returned from Strapi', code: 500 },
+                    error: { message: "No data returned from Strapi", code: 500 },
                 };
             }
             meta = firstPage.meta;
@@ -205,7 +205,7 @@ class StrapiContext {
                 console.error(`No data returned from Strapi`);
                 return {
                     data: undefined,
-                    error: { message: 'No data returned from Strapi', code: 500 },
+                    error: { message: "No data returned from Strapi", code: 500 },
                 };
             }
             return page.data;
@@ -221,7 +221,7 @@ class StrapiContext {
             data,
         }, collection);
     }
-    async getEntryBySlug(collection, slug, query = '', _hermes = this.hermes) {
+    async getEntryBySlug(collection, slug, query = "", _hermes = this.hermes) {
         let _q = StrapiUtils$1.sanitizeQuery(query, false);
         let __q = `&filters[slug][$eq]=${slug}`;
         if (_q) {
@@ -234,13 +234,15 @@ class StrapiContext {
         }
         return await StrapiUtils$1.coerceData(data, collection, slug, true);
     }
-    async getCollection(collection, page = 1, pageSize = 25, query = '', _hermes = this.hermes) {
+    async getCollection(collection, page = 1, pageSize = 25, query = "", _hermes = this.hermes) {
         let _q = StrapiUtils$1.sanitizeQuery(query, false);
         let __q = `?pagination[pageSize]=${pageSize}&pagination[page]=${page}`;
         if (_q) {
             __q += `&${_q}`;
         }
-        let { data, error } = await this.getWithClient(`${collection}${__q}`);
+        let { data, error } = await this.getWithClient(`${collection}${__q}`, {
+            next: { tags: [collection, "atlas::full-revalidation"] },
+        });
         if (error) {
             console.error(`Error fetching collection ${collection}:`, error, {
                 query: __q,
@@ -249,18 +251,22 @@ class StrapiContext {
         }
         return await StrapiUtils$1.coerceData(data, collection);
     }
-    async getEntry(collection, id, query = '', _hermes = this.hermes) {
+    async getEntry(collection, id, query = "", _hermes = this.hermes) {
         query = StrapiUtils$1.sanitizeQuery(query);
-        let { data, error } = await this.getWithClient(`${collection}/${id}${query}`);
+        let { data, error } = await this.getWithClient(`${collection}/${id}${query}`, {
+            next: { tags: [collection, "atlas::full-revalidation"] },
+        });
         if (error) {
             console.error(`Error fetching entry ${collection}:`, error, { query });
             return { data: undefined, error };
         }
         return await StrapiUtils$1.coerceData(data, collection, id);
     }
-    async getSingle(collection, query = '', _hermes = this.hermes) {
+    async getSingle(collection, query = "", _hermes = this.hermes) {
         query = StrapiUtils$1.sanitizeQuery(query);
-        let { data, error } = await this.getWithClient(`${collection}${query}`);
+        let { data, error } = await this.getWithClient(`${collection}${query}`, {
+            next: { tags: [collection, "atlas::full-revalidation"] },
+        });
         if (error) {
             console.error(`Error fetching entry ${collection}:`, error, { query });
             return { data: undefined, error };

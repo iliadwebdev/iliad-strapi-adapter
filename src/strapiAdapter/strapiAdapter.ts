@@ -1,4 +1,4 @@
-import { Hermes } from 'iliad-hermes-ts';
+import { Hermes } from "iliad-hermes-ts";
 
 // TYPES
 import type {
@@ -16,7 +16,7 @@ import type {
   ContextClient,
   SuccessResponse,
   StandardResponse,
-} from '../@types/adapter.js';
+} from "../@types/adapter.js";
 
 import type {
   APIResponseCollectionMetadata,
@@ -24,21 +24,21 @@ import type {
   APIResponseData,
   StrapiResponse,
   APIResponse,
-} from '../@types/strapi.d.ts';
+} from "../@types/strapi.d.ts";
 
-import type { Common } from '@strapi/strapi';
+import type { Common } from "@strapi/strapi";
 
 type TypedResponse<T extends Common.UID.ContentType> = Promise<
   StandardResponse<APIResponseCollection<T>>
 >;
 
 // UTILITY FUNCTIONS
-import StrapiUtils from '../utils/utils.js';
+import StrapiUtils from "../utils/utils.js";
 
 // I should move this entire implementation to a StrapiContext class that extends Hermes, and then export a default instance of that class.
 class StrapiContext {
   hermes: Hermes;
-  client: ContextClient = 'axios';
+  client: ContextClient = "axios";
   constructor(
     contextLabel: string,
     strapiApiLocation: EnvVariable & URL,
@@ -84,7 +84,7 @@ class StrapiContext {
     url = url as string;
     let response;
 
-    if (this.client === 'axios') {
+    if (this.client === "axios") {
       response = await this.hermes.axios.get(url, options);
       response = response.data;
     } else {
@@ -97,7 +97,7 @@ class StrapiContext {
   // GET FUNCTIONS
   async getFullCollection<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
-    query: string | object = '',
+    query: string | object = "",
     _hermes: Hermes = this.hermes
   ): Promise<StandardResponse<APIResponseCollection<TContentTypeUID>>> {
     query = StrapiUtils.sanitizeQuery(query);
@@ -124,7 +124,7 @@ class StrapiContext {
         console.error(`No data returned from Strapi`);
         return {
           data: undefined,
-          error: { message: 'No data returned from Strapi', code: 500 },
+          error: { message: "No data returned from Strapi", code: 500 },
         } as ErrorResponse;
       }
 
@@ -153,7 +153,7 @@ class StrapiContext {
         console.error(`No data returned from Strapi`);
         return {
           data: undefined,
-          error: { message: 'No data returned from Strapi', code: 500 },
+          error: { message: "No data returned from Strapi", code: 500 },
         } as ErrorResponse;
       }
 
@@ -180,7 +180,7 @@ class StrapiContext {
   async getEntryBySlug<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     slug: string,
-    query: string | object = '',
+    query: string | object = "",
     _hermes: Hermes = this.hermes
   ): Promise<StandardResponse<APIResponseData<TContentTypeUID>>> {
     let _q = StrapiUtils.sanitizeQuery(query, false);
@@ -208,7 +208,7 @@ class StrapiContext {
     collection: string,
     page: number = 1,
     pageSize: number = 25,
-    query: string | object = '',
+    query: string | object = "",
     _hermes: Hermes = this.hermes
   ): Promise<StandardResponse<APIResponseCollection<TContentTypeUID>>> {
     let _q = StrapiUtils.sanitizeQuery(query, false);
@@ -218,7 +218,9 @@ class StrapiContext {
       __q += `&${_q}`;
     }
 
-    let { data, error } = await this.getWithClient(`${collection}${__q}`);
+    let { data, error } = await this.getWithClient(`${collection}${__q}`, {
+      next: { tags: [collection, "atlas::full-revalidation"] },
+    });
 
     if (error) {
       console.error(`Error fetching collection ${collection}:`, error, {
@@ -233,13 +235,16 @@ class StrapiContext {
   async getEntry<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
     id: number,
-    query: string | object = '',
+    query: string | object = "",
     _hermes: Hermes = this.hermes
   ): Promise<StandardResponse<APIResponseData<TContentTypeUID>>> {
     query = StrapiUtils.sanitizeQuery(query);
 
     let { data, error } = await this.getWithClient(
-      `${collection}/${id}${query}`
+      `${collection}/${id}${query}`,
+      {
+        next: { tags: [collection, "atlas::full-revalidation"] },
+      }
     );
 
     if (error) {
@@ -252,12 +257,14 @@ class StrapiContext {
 
   async getSingle<TContentTypeUID extends Common.UID.ContentType>(
     collection: string,
-    query: string | object = '',
+    query: string | object = "",
     _hermes: Hermes = this.hermes
   ): Promise<StandardResponse<APIResponseData<TContentTypeUID>>> {
     query = StrapiUtils.sanitizeQuery(query);
 
-    let { data, error } = await this.getWithClient(`${collection}${query}`);
+    let { data, error } = await this.getWithClient(`${collection}${query}`, {
+      next: { tags: [collection, "atlas::full-revalidation"] },
+    });
 
     if (error) {
       console.error(`Error fetching entry ${collection}:`, error, { query });
