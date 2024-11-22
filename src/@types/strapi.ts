@@ -1,4 +1,4 @@
-import type { Attribute, Common, Utils } from '@strapi/strapi';
+import type { Attribute, Common, Utils } from "@strapi/strapi";
 
 type IDProperty = { id: number };
 
@@ -40,7 +40,7 @@ type RelationValue<TAttribute extends Attribute.Attribute> =
               Attribute.RelationKind.WithTarget
             >,
             TRelationKind extends `${string}ToMany`
-              ? Omit<APIResponseCollection<TTarget>, 'meta'>
+              ? Omit<APIResponseCollection<TTarget>, "meta">
               : APIResponse<TTarget> | null
           ]
         ],
@@ -74,8 +74,8 @@ type MediaValue<TAttribute extends Attribute.Attribute> =
   TAttribute extends Attribute.Media<infer _TKind, infer TMultiple>
     ? Utils.Expression.If<
         TMultiple,
-        APIResponseCollection<'plugin::upload.file'>,
-        APIResponse<'plugin::upload.file'> | null
+        APIResponseCollection<"plugin::upload.file">,
+        APIResponse<"plugin::upload.file"> | null
       >
     : never;
 
@@ -86,22 +86,22 @@ export type GetValue<TAttribute extends Attribute.Attribute> =
       [
         // Relation
         [
-          Utils.Expression.Extends<TAttribute, Attribute.OfType<'relation'>>,
+          Utils.Expression.Extends<TAttribute, Attribute.OfType<"relation">>,
           RelationValue<TAttribute>
         ],
         // DynamicZone
         [
-          Utils.Expression.Extends<TAttribute, Attribute.OfType<'dynamiczone'>>,
+          Utils.Expression.Extends<TAttribute, Attribute.OfType<"dynamiczone">>,
           DynamicZoneValue<TAttribute>
         ],
         // Component
         [
-          Utils.Expression.Extends<TAttribute, Attribute.OfType<'component'>>,
+          Utils.Expression.Extends<TAttribute, Attribute.OfType<"component">>,
           ComponentValue<TAttribute>
         ],
         // Media
         [
-          Utils.Expression.Extends<TAttribute, Attribute.OfType<'media'>>,
+          Utils.Expression.Extends<TAttribute, Attribute.OfType<"media">>,
           MediaValue<TAttribute>
         ],
         // Fallback
@@ -138,5 +138,8 @@ export interface APIResponseCollection<
   meta: APIResponseCollectionMetadata;
 }
 
-export type StrapiResponse = APIResponseCollection | APIResponse;
+export type StrapiResponse<T extends Common.UID.ContentType> =
+  | APIResponseCollection<T>
+  | APIResponse<T>;
+
 export type { Common, Attribute, Utils };

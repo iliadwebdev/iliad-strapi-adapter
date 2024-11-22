@@ -1,7 +1,16 @@
-import { Hermes } from "iliad-hermes-ts";
+// import "@iliad.dev/ts-utils/@types";
+import { runAsyncSynchronously } from "@iliad.dev/ts-utils";
+import { downloadContentTypes } from "./contentTypeSync";
+
+import { Hermes, HermesOptions } from "@iliad.dev/hermes";
 
 // TYPES
 import type {
+  APIResponseCollectionMetadata,
+  APIResponseCollection,
+  APIResponseData,
+  StrapiResponse,
+  APIResponse,
   // StrapiEntry,
   // StrapiMetaData,
   // StrapiResponseType,
@@ -12,25 +21,20 @@ import type {
   // INTERNAL TYPINGS
   EnvVariable,
   ErrorResponse,
-  HermesOptions,
   ContextClient,
   SuccessResponse,
   StandardResponse,
-} from "../@types/adapter.js";
-
-import type {
-  APIResponseCollectionMetadata,
-  APIResponseCollection,
-  APIResponseData,
-  StrapiResponse,
-  APIResponse,
-} from "../@types/strapi.d.ts";
+} from "../@types";
 
 import type { Common } from "@strapi/strapi";
 
 type TypedResponse<T extends Common.UID.ContentType> = Promise<
   StandardResponse<APIResponseCollection<T>>
 >;
+
+export type ContentTypesSyncOptions = {
+  outDir: string;
+};
 
 // UTILITY FUNCTIONS
 import StrapiUtils from "../utils/utils.js";
@@ -73,14 +77,15 @@ class StrapiContext {
       contextLabel,
       strapiApiLocation,
       strapiBearerToken,
+      undefined,
       options
     );
   }
 
-  private async getWithClient(
+  private async getWithClient<T extends Common.UID.ContentType>(
     url: string | URL,
     options?: any
-  ): Promise<StandardResponse<StrapiResponse>> {
+  ): Promise<StandardResponse<StrapiResponse<T>>> {
     url = url as string;
     let response;
 
@@ -91,7 +96,7 @@ class StrapiContext {
       response = await this.hermes.fetch(url, options);
     }
 
-    return response as StandardResponse<StrapiResponse>;
+    return response as StandardResponse<StrapiResponse<T>>;
   }
 
   // GET FUNCTIONS
@@ -172,7 +177,7 @@ class StrapiContext {
       {
         meta,
         data,
-      } as StrapiResponse,
+      } as StrapiResponse<TContentTypeUID>,
       collection
     );
   }
@@ -278,11 +283,25 @@ class StrapiContext {
     return this.hermes;
   }
 
+  withContentTypes(options: ContentTypesSyncOptions): StrapiContext {
+    const { data: contentTypes, error } = runAsyncSynchronously(
+      downloadContentTypes,
+      this.hermes,
+      options
+    );
+    return this;
+  }
+
   // STATIC FUNCTIONS
-  public static extractStrapiData(input: StrapiData | StrapiDataObject) {
+  public static extractStrapiData<T extends Common.UID.ContentType>(
+    input: StrapiData<T> | StrapiDataObject<T>
+  ) {
     return StrapiUtils.extractStrapiData(input);
   }
-  public extractStrapiData(input: StrapiData | StrapiDataObject) {
+
+  public extractStrapiData<T extends Common.UID.ContentType>(
+    input: StrapiData<T> | StrapiDataObject<T>
+  ) {
     return StrapiUtils.extractStrapiData(input);
   }
   // extractStrapiData = StrapiUtils.extractStrapiData;

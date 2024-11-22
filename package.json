@@ -8,23 +8,29 @@
   },
   "license": "ISC",
   "author": "Smoke3785",
+  "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
-  "types": "dist/strapi.d.ts",
+  "types": "dist/strapi-adapter.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
     "_publish": "npm upgrade iliad-hermes-ts && node iterate && rollup -c && npm publish",
-    "build": "rollup -c",
-    "dev": "nodemon ./src/index.ts",
+    "build": "env NODE_ENV=production tsup &&tsup",
+    "build:dev": "tsup --watch",
+    "dev": "tsx watch src/index.ts",
     "lint": "tsc",
     "test": "rollup -c && node test/index.ts",
     "test-": "node test/index.ts"
   },
   "dependencies": {
+    "@iliad.dev/hermes": "^0.0.13",
+    "@iliad.dev/ts-utils": "^0.0.18",
+    "@rollup/plugin-commonjs": "^28.0.1",
     "@strapi/strapi": "^4.24.2",
     "qs": "^6.12.1",
+    "tsx": "^4.19.2",
     "typescript": "^5.2.2"
   },
   "devDependencies": {
@@ -37,7 +43,7 @@
     "rollup-plugin-dts": "^6.1.0",
     "rollup-plugin-typescript2": "^0.36.0",
     "ts-node": "^10.9.2",
-    "tsup": "^8.0.2"
+    "tsup": "^8.3.5"
   },
   "peerDependencies": {
     "iliad-hermes-ts": "^0.0.13"
