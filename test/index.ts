@@ -1,29 +1,71 @@
-// import { Hermes } from '../src/index
-const StrapiContext = require('../dist/index.js').default;
-import { StandardResponse } from '../src/@types/adapter';
+import dotenv from "dotenv";
+import path from "path";
+dotenv.config();
 
-const strapiBearerToken =
-  '59559bb906d1a15cb2a821481c7ee4ae5adf11f4a7c3b4940cbcb6c58b9e5b5e11273954b8582645be5639d848837465a87ee2b7f1dc318fd39893904fafb586bed8d19bb5dfa27b9fb5b7dfbeda94ebd0a94e533f513af8d469059012e3e09ba746aa7cc2c53dbe53de5358877848532a2fc1bd011ed8cfd28e19080cf203c1';
-const strapiApiLocation = 'http://127.0.0.1:1776';
+// import { StrapiInstance } from "@iliad.dev/strapi-adapter";
+import { StrapiInstance } from "../src";
 
-let _strapi;
+const strapiApiLocation = process.env.STRAPI_API_URL || "";
+const strapiBearerToken = process.env.STRAPI_API_KEY || "";
 
-_strapi = new StrapiContext(
-  'Server',
-  `${strapiApiLocation}/api`,
+const typesDir = path.resolve(process.cwd(), "./test/@types");
+
+const strapi = new StrapiInstance({
+  strapiApiLocation,
   strapiBearerToken,
-  'fetch'
-);
+  label: "Server Test (Legacy)",
+  client: "fetch",
+  hermesOptions: {
+    verboseLogging: false,
+  },
+  contentTypesSyncOptions: {
+    outDir: typesDir,
+  },
+});
+
+// strapi.syncContentTypes();
+
+async function getArticlesData(searchParams = {}) {
+  const sort = "updatedAt:desc";
+  const query = {};
+  const page = 1;
+
+  const extraQuery: Record<string, any> = {
+    populate: "*",
+    sort,
+  };
+
+  if (query) {
+    extraQuery.filters = {
+      title: {
+        $containsi: query,
+      },
+    };
+  }
+
+  // @ts-expect-error
+  const { data, error: $1error } = await strapi.getCollection("articles", {
+    ...extraQuery,
+    pageSize: 11,
+    page,
+  });
+
+  if ($1error) {
+    console.error({
+      articles: $1error,
+    });
+    throw new Error("Failed to fetch articles data");
+  }
+
+  const { data: articles = [], meta } = data;
+
+  return { articles, meta };
+}
 
 (async () => {
-  const { data, error }: StandardResponse = await _strapi.getEntry(
-    'menus',
-    1,
-    'populate=*'
-  );
-
-  console.log({
-    data,
-    error,
-  });
+  const { articles, meta } = await getArticlesData();
+  console.log({ articles, meta });
 })();
+
+export default strapi;
+export { strapi };

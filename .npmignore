@@ -1,12 +1,19 @@
 # DEPENDENCIES
 node_modules
 
-# DIST
-cjs
-esm
+# SOURCE
+src
+test
 
 # MONOREPO
 .turbo
 
 # ENVIROMENT VARIABLES
 .env
+
+
+# DEV
+.vscode
+turbo.json
+tsup.config.ts
+tsconfig.json

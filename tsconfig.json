@@ -3,24 +3,35 @@
     /* Language and Environment */
     "target": "ESNext" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
     /* Modules */
-    "module": "ESNext" /* Specify what module code is generated. */,
-    "moduleResolution": "Node" /* Determine how modules get resolved. */,
-    "declaration": true,
+    "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
     "declarationDir": "./dist/types",
     "emitDeclarationOnly": true /* Emit only declaration files. */,
+    "moduleResolution": "Node" /* Determine how modules get resolved. */,
     "esModuleInterop": true /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */,
-    "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
+    "declaration": true,
+    "module": "ESNext" /* Specify what module code is generated. */,
     /* Type Checking */
-    "strict": true /* Enable all strict type-checking options. */,
+    "typeRoots": [
+      "./src/@types",
+      "./node_modules/@types"
+    ] /* List of folders to include type definitions from. */,
+    "allowImportingTsExtensions": true,
     "noUncheckedIndexedAccess": true /* Add 'undefined' to a type when accessed using an index. */,
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     "allowJs": true,
-    "allowImportingTsExtensions": true
+    "strict": true /* Enable all strict type-checking options. */,
+    "baseUrl": "./",
+    "paths": {
+      "@features": ["./src/strapiAdapter"],
+      "@classes*": ["./src/classes*"],
+      "@WarningsRegistry": [
+        "./src/strapiAdapter/StrapiInstance/utils/warnings"
+      ],
+      "@types": ["./src/@types"],
+      "@utils": ["./src/utils"]
+    }
   },
-  "exclude": ["rollup.config.js", "node_modules/*", "dist"],
-  "include": [
-    "src",
-    "src/@types/**/*",
-    "node_modules/@iliad.dev/ts-utils/@globals"
-  ]
+
+  "exclude": ["rollup.config.js", "node_modules/*", "dist", "lib", "test"],
+  "include": ["src/@types/**/*", "src/**/*"]
 }

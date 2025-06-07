@@ -1,6 +1,16 @@
-import type { Attribute, Common, Utils } from "@strapi/strapi";
+import type { Attribute, Schema, Common, Utils } from "@strapi/strapi";
 
 type IDProperty = { id: number };
+
+export type StrapiError = {
+  data: null;
+  error: {
+    details: Record<string, unknown>;
+    message: string;
+    status: number;
+    name: string;
+  };
+};
 
 type InvalidKeys<TSchemaUID extends Common.UID.Schema> = Utils.Object.KeysBy<
   Attribute.GetAll<TSchemaUID>,
@@ -120,10 +130,10 @@ export interface APIResponseData<TContentTypeUID extends Common.UID.ContentType>
 
 export interface APIResponseCollectionMetadata {
   pagination: {
-    page: number;
-    pageSize: number;
     pageCount: number;
+    pageSize: number;
     total: number;
+    page: number;
   };
 }
 
@@ -142,4 +152,8 @@ export type StrapiResponse<T extends Common.UID.ContentType> =
   | APIResponseCollection<T>
   | APIResponse<T>;
 
-export type { Common, Attribute, Utils };
+// Re-exporting so that the consuming project gets the correct types
+export type { Common, Attribute, Utils, Schema };
+
+export type WithPage<T> = T & { page: number };
+export type WithoutPage<T> = Omit<T, "page">;
