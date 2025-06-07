@@ -1,12 +1,2 @@
 # DEPENDENCIES
 node_modules
-
-# DIST
-cjs
-esm
-
-# MONOREPO
-.turbo
-
-# ENVIROMENT VARIABLES
-.env
